@@ -31,7 +31,7 @@ public class Tester {
 			System.out.println("Last-Modified for " + url[0] + " is: " + cache.getLastModified(url[0]));
 			cache.getObject(url[0]);
 			System.out.println("Last-Modified for " + url[0] + " is: " + cache.getLastModified(url[0]));
-			System.out.println("File for index: \n" + cache.getFile("people.ucalgary.ca/~mghaderi/index.html"));
+			//System.out.println("File for index: \n" + cache.getFile("people.ucalgary.ca/~mghaderi/index.html"));
 		}
 		catch (IOException e) {
 			System.out.println("There was a problem: " + e.getMessage());

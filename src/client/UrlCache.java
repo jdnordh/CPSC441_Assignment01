@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -42,23 +43,26 @@ public class UrlCache {
 		//TODO url stuff
 		
 		String server = "";
+		String object = "";
 		int port = 80;
 		
 		// Parse the url
 		int colon = -1;
-		int slash = -1;
+		int firstslash = -1;
+		boolean serverdone = false;
 		for (int i = 0; i < url.length(); i++){
-			if (url.charAt(i) == ':' && colon < 0){
-				colon = i;
+			if (url.charAt(i) == '/' || url.charAt(i) == ':') serverdone = true;
+			if (!serverdone){
+				server += url.charAt(i);
 			}
-			if (colon > 0 && slash < 0) {
-				if (url.charAt(i) == '/'){
-					slash = i;
-				}
-			}
+			if (url.charAt(i) == ':' && colon < 0) colon = i;
+			if (url.charAt(i) == '/' && firstslash < 0) firstslash = i;
 		}
-		if (colon > 0 && slash > 0){
-			String portNumber = url.substring(colon + 1, slash);
+		if (firstslash > 0){
+			object = url.substring(firstslash);
+		}
+		if (colon > 0 && firstslash > 0){
+			String portNumber = url.substring(colon + 1, firstslash);
 			port = Integer.parseInt(portNumber);
 		}
 		boolean haveit = false;
@@ -75,23 +79,29 @@ public class UrlCache {
 			try {
 				BufferedReader in;
 				PrintWriter out;
-				// ageorina;eolrtinha
-				System.out.println("Trying to connect to: " + url);
+				System.out.println("Trying to connect to: " + server);
+				System.out.println("Trying to download: " + object);
 				
-				Socket socket = new Socket(server, port);
+				Socket socket = new Socket(InetAddress.getByName(server), port);
 				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				out = new PrintWriter(socket.getOutputStream());
 				
-				out.println("GET / HTTP/1.1");
-				out.println("Host: " + url);
-				out.println("");
+				// send the request
+				out.println("GET " + object + " HTTP/1.1\r");
+				out.println("Host: " + server + "\r");
+				out.println("\r");
 				out.flush();
+				
+				System.out.println("The request sent was:");
+				System.out.println("GET " + object + " HTTP/1.1");
+				System.out.println("Host: " + server);
 				
 				StringBuffer file = new StringBuffer();
 				String buffer;
 				
 				while ((buffer = in.readLine()) != null){
 					file.append(buffer);
+					file.append('\n');
 				}
 				System.out.println("The file downloaded was: \n" + file.toString() + "\n\n");
 				// create object and add it to the catalog
